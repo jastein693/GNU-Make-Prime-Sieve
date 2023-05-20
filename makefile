@@ -46,14 +46,14 @@ test = $(join $1,y y)
 
 not = $(if $(filter x,$1),,x)
 
-sieve_size := 30
+sieve_size := 1000
 sieve_size_encode = $(call encode,$(sieve_size))
 rawbits = $(call halve_t,$(wordlist 1,$(sieve_size),$(input_int_t)))
 
 factor := x x x
 next_factor :=
 num := 
-max_num := $(call decode,$(call halve_x,$(sieve_size_encode)))
+max_num := $(call decode,$(sieve_size_encode))
 half :=
 
 # $(eval $(num) := $(call encode,$(factor)))
@@ -84,14 +84,17 @@ run_sieve = $(foreach a,$(rawbits),\
 					$(info found next factor $(call decode,$(factor))),\
 					$(call eq,$(factor),),\
 					$(eval num := $(call multiply,$(factor),$(three))),\
+					$(info times $(words $(call halve_x,$(wordlist $(call decode,$(num)),$(max_num),$(sieve_size_encode))))),\
 					$(and \
 						$(foreach b,$(wordlist $(call decode,$(num)),$(max_num),$(sieve_size_encode)),\
 							$(or \
 								$(info num $(call decode,$(num))),\
+								$(call gt,$(num),$(sieve_size_encode)),\
 								$(eval half := $(call halve_x,$(num))),\
-								$(info bits1 $(rawbits)),\
-								$(info half $(half) plus one $(call add,$(half),x) sub  $(call subtract,$(half),x)),\
-								$(eval rawbits := $(wordlist 1,$(call decode,$(call subtract,$(half),x)),$(rawbits)) f $(wordlist $(call decode,$(call add,$(half),x)),$(words $(rawbits)),$(rawbits))),\
+								$(info half $(call decode,$(half))),\
+								$(info half bits $(words $(wordlist 1,$(call decode,$(half)),$(rawbits)))),\
+								$(info half bits2 $(words $(wordlist $(call decode,$(call add,$(half),$(two))),$(call decode,$(rawbits)),$(rawbits)))),\
+								$(eval rawbits := $(wordlist 1,$(call decode,$(half)),$(rawbits)) f $(wordlist $(call decode,$(call add,$(half),$(two))),$(call decode,$(rawbits)),$(rawbits))),\
 								$(info bits2 $(rawbits)),\
 								$(eval num := $(call add,$(num),$(call multiply,$(factor),$(two)))),\
 							)\
@@ -113,6 +116,15 @@ print_results = $(foreach a,$(rawbits),\
 					)\
 				)
 
+total_primes :=
+count_primes = $(foreach a,$(rawbits),\
+					$(if $(filter t,$(a)),\
+						$(eval total_primes := $(call inc,$(total_primes)))\
+					),\
+				)
+# count_primes = $(foreach a,$(rawbits),\
+# 					$(info a $(a))\
+# 				)
 # use word to get bit from rawbits
 # input into word using decode
 # use wordlist for range
@@ -122,8 +134,10 @@ print_results = $(foreach a,$(rawbits),\
 # wordlist retuns substring start,end,list
 
 # all: ; @echo $(call decode,$(call halve,x x x x))
-all: ; @echo $(call run_sieve) $(rawbits) $(print_results)
+all: ; @echo $(call run_sieve) $(count_primes) total $(call decode,$(total_primes))
 # all: ; @echo $(call not,)
+
+# all: ; @echo $(call divide,x x x x x x x x x x x x x x x x x x x x x,x x x x x x)
 
 # $(and \
 # 						$(foreach b,\
