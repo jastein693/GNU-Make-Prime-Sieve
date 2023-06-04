@@ -63,10 +63,13 @@ class prime_sieve(object):
         factor = 3
         q = sqrt(this.sieveSize)
 
-        print(len(this.rawbits))
+        # print(len(this.rawbits))
 
         while (factor < q):
             for num in range (factor, this.sieveSize):
+                print('bits', this.rawbits)
+                print('numm', num)
+                print('half num', int(num/2))
                 if (this.GetBit(num) == True):
                     factor = num
                     break
@@ -74,18 +77,19 @@ class prime_sieve(object):
             # If marking factor 3, you wouldn't mark 6 (it's a mult of 2) so start with the 3rd instance of this factor's multiple.
             # We can then step by factor * 2 because every second one is going to be even by definition
 
-            print('times', (this.sieveSize - (factor * 3)) / (factor * 2))
+            print('factor', factor)
+            # print('times', (this.sieveSize - (factor * 3)) / (factor * 2))
             times = 0
-            print("factor3", factor * 3)
-            print("sieveSize", this.sieveSize)
+            # print("factor3", factor * 3)
+            # print("sieveSize", this.sieveSize)
             for num in range (factor * 3, this.sieveSize, factor * 2): 
                 print("num", num)
-                print(int(num/2))
+                # print(int(num/2))
                 this.ClearBit(num)
-                print(this.rawbits)
+                # print(this.rawbits)
                 # print('times', times)
                 times += 1
-            print('times2', times)
+            # print('times2', times)
             factor += 2 # No need to check evens, so skip to next odd (factor = 3, 5, 7, 9...)
 
     # countPrimes
@@ -134,6 +138,6 @@ class prime_sieve(object):
     
 # tD = timeit.default_timer() - tStart                    # After the "at least 10 seconds", get the actual elapsed
 
-sieve = prime_sieve(30)                         #  Calc the primes up to a million
+sieve = prime_sieve(200)                         #  Calc the primes up to a million
 sieve.runSieve() 
 sieve.printResults(True, 1, 1)                   # Display outcome

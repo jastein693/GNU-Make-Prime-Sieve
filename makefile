@@ -23,6 +23,8 @@ gt = $(filter-out $(words $2),$(words $(call max,$1,$2)))
 
 eq = $(filter $(words $1),$(words $2))
 
+ne = $(filter-out $(words $1),$(words $2))
+
 gte = $(call gt,$1,$2)$(call eq,$1,$2)
 
 subtract = $(if $(call gte,$1,$2),\
@@ -48,7 +50,7 @@ not = $(if $(filter x,$1),,x)
 
 sieve_size := 1000
 sieve_size_encode = $(call encode,$(sieve_size))
-rawbits = $(call halve_t,$(wordlist 1,$(sieve_size),$(input_int_t)))
+rawbits := $(call halve_t,$(wordlist 1,$(sieve_size),$(input_int_t)))
 
 factor := x x x
 next_factor :=
@@ -62,18 +64,27 @@ half :=
 # loop over rawbits
 # loop from factor to half sieve size
 
-bit_is_true = $(filter t,$(word $(call decode,$(call halve_x,$1)),$(rawbits)))
+bit_is_true = $(filter t,$(word $(call decode,$(call inc,$(call halve_x,$1))),$(rawbits)))
 
 run_sieve = $(foreach a,$(rawbits),\
 				$(or \
 					$(eval num := $(factor)),\
-					$(info start factor $(call decode,$(factor))),\
+					$(eval next_factor := $(factor)),\
 					$(call eq,$(factor),),\
+					$(eval factor_found := f),\
 					$(and \
 						$(foreach b,$(wordlist $(call decode,$(factor)),$(sieve_size),$(sieve_size_encode)),\
 							$(or \
-								$(if $(and $(call not,$(next_factor)),$(call bit_is_true,$(num))),\
-									$(eval next_factor := $(num)),\
+								$(info looking for next factor. found := $(factor_found)),\
+								$(filter $(factor_found),t),\
+								$(info looking for next factor. num := $(call decode,$(num))),\
+								$(info looking for next factor. num halve := $(call decode,$(call halve_x,$(num)))),\
+								$(info looking for next factor. bits := $(rawbits)),\
+								$(if $(call bit_is_true,$(num)),\
+									$(or \
+										$(eval next_factor := $(num)),\
+										$(eval factor_found := t),\
+									)\
 								),\
 								$(eval num := $(call inc_2,$(num))),\
 							)\
@@ -81,21 +92,16 @@ run_sieve = $(foreach a,$(rawbits),\
 					),\
 					$(eval factor := $(next_factor)),\
 					$(eval next_factor :=),\
-					$(info found next factor $(call decode,$(factor))),\
+					$(info factor $(call decode,$(factor))),\
 					$(call eq,$(factor),),\
 					$(eval num := $(call multiply,$(factor),$(three))),\
-					$(info times $(words $(call halve_x,$(wordlist $(call decode,$(num)),$(max_num),$(sieve_size_encode))))),\
 					$(and \
 						$(foreach b,$(wordlist $(call decode,$(num)),$(max_num),$(sieve_size_encode)),\
 							$(or \
-								$(info num $(call decode,$(num))),\
 								$(call gt,$(num),$(sieve_size_encode)),\
+								$(info num $(call decode,$(num))),\
 								$(eval half := $(call halve_x,$(num))),\
-								$(info half $(call decode,$(half))),\
-								$(info half bits $(words $(wordlist 1,$(call decode,$(half)),$(rawbits)))),\
-								$(info half bits2 $(words $(wordlist $(call decode,$(call add,$(half),$(two))),$(call decode,$(rawbits)),$(rawbits)))),\
 								$(eval rawbits := $(wordlist 1,$(call decode,$(half)),$(rawbits)) f $(wordlist $(call decode,$(call add,$(half),$(two))),$(call decode,$(rawbits)),$(rawbits))),\
-								$(info bits2 $(rawbits)),\
 								$(eval num := $(call add,$(num),$(call multiply,$(factor),$(two)))),\
 							)\
 						),\
@@ -117,9 +123,11 @@ print_results = $(foreach a,$(rawbits),\
 				)
 
 total_primes :=
-count_primes = $(foreach a,$(rawbits),\
-					$(if $(filter t,$(a)),\
-						$(eval total_primes := $(call inc,$(total_primes)))\
+count_primes =  $(and \
+					$(foreach a,$(rawbits),\
+						$(if $(filter t,$(a)),\
+							$(eval total_primes := $(call inc,$(total_primes)))\
+						),\
 					),\
 				)
 # count_primes = $(foreach a,$(rawbits),\
@@ -134,7 +142,7 @@ count_primes = $(foreach a,$(rawbits),\
 # wordlist retuns substring start,end,list
 
 # all: ; @echo $(call decode,$(call halve,x x x x))
-all: ; @echo $(call run_sieve) $(count_primes) total $(call decode,$(total_primes))
+all: ; @echo $(and $(run_sieve),$(count_primes)) total $(call decode,$(total_primes))
 # all: ; @echo $(call not,)
 
 # all: ; @echo $(call divide,x x x x x x x x x x x x x x x x x x x x x,x x x x x x)
