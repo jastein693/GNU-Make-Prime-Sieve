@@ -30,12 +30,12 @@ test = $(join $1,y y)
 
 not = $(if $(filter x,$1),,x)
 
-sieve_size := 10000
-sieve_size_encode = $(call encode,$(sieve_size))
+sieve_size := 100
+sieve_size_encode := $(call encode,$(sieve_size))
+sieve_size_half := $(call decode,$(call halve,$(sieve_size_encode)))
 rawbits := $(call halve,$(wordlist 1,$(sieve_size),$(input_int_x)))
 
 factor := $(three)
-max_num := $(call decode,$(sieve_size_encode))
 
 bit_is_true = $(filter x,$(word $(call decode,$(call inc,$(call halve,$1))),$(rawbits)))
 
@@ -46,7 +46,7 @@ run_sieve = $(foreach a,$(rawbits),\
 					$(call eq,$(factor),),\
 					$(eval factor_found := f),\
 					$(and \
-						$(foreach b,$(wordlist $(call decode,$(factor)),$(sieve_size),$(sieve_size_encode)),\
+						$(foreach b,$(wordlist $(call decode,$(factor)),$(sieve_size_half),$(sieve_size_encode)),\
 							$(or \
 								$(filter $(factor_found),t),\
 								$(if $(call bit_is_true,$(num)),\
@@ -64,7 +64,7 @@ run_sieve = $(foreach a,$(rawbits),\
 					$(call eq,$(factor),),\
 					$(eval num := $(call multiply,$(factor),$(three))),\
 					$(and \
-						$(foreach b,$(wordlist $(call decode,$(num)),$(max_num),$(sieve_size_encode)),\
+						$(foreach b,$(wordlist $(call decode,$(num)),$(sieve_size_half),$(sieve_size_encode)),\
 							$(or \
 								$(call gt,$(num),$(sieve_size_encode)),\
 								$(eval half := $(call halve,$(num))),\
@@ -77,12 +77,13 @@ run_sieve = $(foreach a,$(rawbits),\
 				)\
 			)
 
-print_num := x x x
+print_num := $(three)
+results := 2
 print_results = $(foreach a,$(rawbits),\
 					$(or \
 						$(and \
 							$(if $(call bit_is_true,$(print_num)),\
-								$(info result $(call decode,$(print_num)))\
+								$(eval results := $(results), $(call decode,$(print_num)))\
 							),\
 						),\
 						$(eval print_num := $(call inc_2,$(print_num))),\
@@ -98,4 +99,4 @@ count_primes =  $(and \
 					),\
 				)
 
-all: ; @echo $(and $(run_sieve),$(count_primes)) total $(call decode,$(total_primes))
+all: ; @echo $(run_sieve) $(count_primes) total $(call decode,$(total_primes)) $(print_results) $(results)
