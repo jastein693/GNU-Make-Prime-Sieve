@@ -14,7 +14,27 @@ factor := $(three)
 
 bit_is_true = $(filter x,$(word $(call int_decode,$(call int_inc,$(call int_halve,$1))),$(rawbits)))
 
-run_sieve = $(foreach a,$(rawbits),\
+# ITERATE = $(eval ITERATE_COUNT :=)\
+# $(if $(filter ${1},0),,\
+#   $(call ITERATE_DO,${1},${2})\
+# )
+
+# ITERATE_DO = $(if $(word ${1}, ${ITERATE_COUNT}),,\
+#   $(eval ITERATE_COUNT+=.)\
+#   $(info ${2} $(words ${ITERATE_COUNT}))\
+#   $(call ITERATE_DO,${1},${2})\
+# )
+
+odd_number := x
+sub := $(sieve_size_encode)
+
+# run_sieve =	$(if $(filter ${sieve_size},0),,\
+# 				$(call sqrt_do,${1},${2})\
+# 			)
+
+run_sieve = $(if $(call int_eq,$(sub),),,\
+				$(eval sub := $(call int_subtract,$(sub),$(odd_number)))\
+				$(eval odd_number += $(two))\
 				$(or \
 					$(eval num := $(factor)),\
 					$(eval next_factor := $(factor)),\
@@ -38,8 +58,9 @@ run_sieve = $(foreach a,$(rawbits),\
 					$(eval next_factor :=),\
 					$(call int_eq,$(factor),),\
 					$(eval num := $(call int_multiply,$(factor),$(three))),\
+					$(eval max := $(call int_inc,$(call int_divide,$(call int_subtract,$(sieve_size_encode),$(num)),$(call int_multiply,$(factor),$(two))))),\
 					$(and \
-						$(foreach b,$(wordlist $(call int_decode,$(num)),$(sieve_size_half),$(sieve_size_encode)),\
+						$(foreach b,$(wordlist 1,$(call int_decode,$(max)),$(sieve_size_encode)),\
 							$(or \
 								$(call int_gt,$(num),$(sieve_size_encode)),\
 								$(eval half := $(call int_halve,$(num))),\
@@ -50,6 +71,7 @@ run_sieve = $(foreach a,$(rawbits),\
 					),\
 					$(eval factor := $(call inc_2,$(factor))),\
 				)\
+				$(call run_sieve)\
 			)
 
 print_num := $(three)
@@ -74,4 +96,12 @@ count_primes =  $(and \
 					),\
 				)
 
-all: ; @echo $(run_sieve) $(count_primes) total $(call int_decode,$(total_primes)) $(print_results) $(results)
+all: ; @echo $(run_sieve) $(count_primes) total $(call int_decode,$(total_primes))
+# all: ; @echo $(run_sieve) $(count_primes) total $(call int_decode,$(total_primes)) $(print_results) $(results)
+# all: ; @echo $(call ITERATE,5,$(info test))
+# all: ; @echo $(run_sieve)
+
+
+# $(eval max := $(call int_divide,$(call int_subtract,$(sieve_size_encode),$(num)),$(call int_multiply,$(factor),$(two)))),\
+# $(info num $(call int_decode,$(num))),\
+# 					$(info sub $(call int_decode,$(call int_subtract,$(sieve_size_encode),$(num)))),\
