@@ -1,52 +1,27 @@
-16_x := x x x x x x x x x x x x x x x
+include gmsl/gmsl
 
 two := x x
 three := x x x
 
-input_int_x := $(foreach a,$(16_x),$(foreach b,$(16_x),$(foreach c,$(16_x),$(16_x))))
-encode = $(wordlist 1,$1,$(input_int_x))
-decode = $(words $1)
+inc_2 = $(two) $1
 
-add = $1 $2
-
-inc = x $1
-
-inc_2 = x x $1
-
-multiply = $(foreach a,$1,$2)
-
-max = $(subst xx,x,$(join $1,$2))
-
-gt = $(filter-out $(words $2),$(words $(call max,$1,$2)))
-
-eq = $(filter $(words $1),$(words $2))
-
-halve = $(subst xx,x,\
-			$(filter-out xy x y,\
-				$(join $1,\
-					$(foreach a,$1,y x))))
-
-test = $(join $1,y y)
-
-not = $(if $(filter x,$1),,x)
-
-sieve_size := 100
-sieve_size_encode := $(call encode,$(sieve_size))
-sieve_size_half := $(call decode,$(call halve,$(sieve_size_encode)))
-rawbits := $(call halve,$(wordlist 1,$(sieve_size),$(input_int_x)))
+sieve_size := 1000
+sieve_size_encode := $(call int_encode,$(sieve_size))
+sieve_size_half := $(call int_decode,$(call int_halve,$(sieve_size_encode)))
+rawbits := $(call int_halve,$(sieve_size_encode))
 
 factor := $(three)
 
-bit_is_true = $(filter x,$(word $(call decode,$(call inc,$(call halve,$1))),$(rawbits)))
+bit_is_true = $(filter x,$(word $(call int_decode,$(call int_inc,$(call int_halve,$1))),$(rawbits)))
 
 run_sieve = $(foreach a,$(rawbits),\
 				$(or \
 					$(eval num := $(factor)),\
 					$(eval next_factor := $(factor)),\
-					$(call eq,$(factor),),\
+					$(call int_eq,$(factor),),\
 					$(eval factor_found := f),\
 					$(and \
-						$(foreach b,$(wordlist $(call decode,$(factor)),$(sieve_size_half),$(sieve_size_encode)),\
+						$(foreach b,$(wordlist $(call int_decode,$(factor)),$(sieve_size_half),$(sieve_size_encode)),\
 							$(or \
 								$(filter $(factor_found),t),\
 								$(if $(call bit_is_true,$(num)),\
@@ -61,15 +36,15 @@ run_sieve = $(foreach a,$(rawbits),\
 					),\
 					$(eval factor := $(next_factor)),\
 					$(eval next_factor :=),\
-					$(call eq,$(factor),),\
-					$(eval num := $(call multiply,$(factor),$(three))),\
+					$(call int_eq,$(factor),),\
+					$(eval num := $(call int_multiply,$(factor),$(three))),\
 					$(and \
-						$(foreach b,$(wordlist $(call decode,$(num)),$(sieve_size_half),$(sieve_size_encode)),\
+						$(foreach b,$(wordlist $(call int_decode,$(num)),$(sieve_size_half),$(sieve_size_encode)),\
 							$(or \
-								$(call gt,$(num),$(sieve_size_encode)),\
-								$(eval half := $(call halve,$(num))),\
-								$(eval rawbits := $(wordlist 1,$(call decode,$(half)),$(rawbits)) f $(wordlist $(call decode,$(call add,$(half),$(two))),$(call decode,$(rawbits)),$(rawbits))),\
-								$(eval num := $(call add,$(num),$(call multiply,$(factor),$(two)))),\
+								$(call int_gt,$(num),$(sieve_size_encode)),\
+								$(eval half := $(call int_halve,$(num))),\
+								$(eval rawbits := $(wordlist 1,$(call int_decode,$(half)),$(rawbits)) f $(wordlist $(call int_decode,$(call int_plus,$(half),$(two))),$(call int_decode,$(rawbits)),$(rawbits))),\
+								$(eval num := $(call int_plus,$(num),$(call int_multiply,$(factor),$(two)))),\
 							)\
 						),\
 					),\
@@ -83,7 +58,7 @@ print_results = $(foreach a,$(rawbits),\
 					$(or \
 						$(and \
 							$(if $(call bit_is_true,$(print_num)),\
-								$(eval results := $(results), $(call decode,$(print_num)))\
+								$(eval results := $(results), $(call int_decode,$(print_num)))\
 							),\
 						),\
 						$(eval print_num := $(call inc_2,$(print_num))),\
@@ -94,9 +69,9 @@ total_primes :=
 count_primes =  $(and \
 					$(foreach a,$(rawbits),\
 						$(if $(filter x,$(a)),\
-							$(eval total_primes := $(call inc,$(total_primes)))\
+							$(eval total_primes := $(call int_inc,$(total_primes)))\
 						),\
 					),\
 				)
 
-all: ; @echo $(run_sieve) $(count_primes) total $(call decode,$(total_primes)) $(print_results) $(results)
+all: ; @echo $(run_sieve) $(count_primes) total $(call int_decode,$(total_primes)) $(print_results) $(results)
