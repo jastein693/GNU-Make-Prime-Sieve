@@ -3,9 +3,7 @@ include gmsl/gmsl
 two := x x
 three := x x x
 
-inc_2 = $(two) $1
-
-sieve_size := 10000
+sieve_size := 1000
 sieve_size_encode := $(call int_encode,$(sieve_size))
 rawbits := $(call int_halve,$(sieve_size_encode))
 
@@ -15,7 +13,7 @@ bit_is_true = $(filter x,$(word $(call int_decode,$(call int_inc,$(call int_halv
 
 find_factor =	$(if $(call bit_is_true,$(num)),\
 					$(eval factor := $(num)),\
-					$(eval num := $(call inc_2,$(num)))\
+					$(eval num += $(two))\
 					$(call find_factor)\
 				)
 
@@ -36,7 +34,7 @@ run_sieve = $(if $(call int_eq,$(sub),),,\
 				$(call find_factor)\
 				$(eval num := $(call int_multiply,$(factor),$(three)))\
 				$(call clear_bits)\
-				$(eval factor := $(call inc_2,$(factor)))\
+				$(eval factor += $(two))\
 				$(call run_sieve)\
 			)
 
@@ -49,7 +47,7 @@ print_results = $(foreach a,$(rawbits),\
 								$(eval results := $(results), $(call int_decode,$(print_num)))\
 							),\
 						),\
-						$(eval print_num := $(call inc_2,$(print_num))),\
+						$(eval print_num += $(two)),\
 					)\
 				)
 
@@ -64,10 +62,3 @@ count_primes =  $(and \
 
 all: ; @echo $(run_sieve) $(count_primes) total $(call int_decode,$(total_primes))
 # all: ; @echo $(run_sieve) $(count_primes) total $(call int_decode,$(total_primes)) $(print_results) $(results)
-# all: ; @echo $(call ITERATE,5,$(info test))
-# all: ; @echo $(run_sieve)
-
-
-# $(eval max := $(call int_divide,$(call int_subtract,$(sieve_size_encode),$(num)),$(call int_multiply,$(factor),$(two)))),\
-# $(info num $(call int_decode,$(num))),\
-# 					$(info sub $(call int_decode,$(call int_subtract,$(sieve_size_encode),$(num)))),\
