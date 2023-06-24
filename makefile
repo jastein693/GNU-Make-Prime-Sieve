@@ -5,7 +5,7 @@ three := x x x
 
 inc_2 = $(two) $1
 
-sieve_size := 9000
+sieve_size := 10000
 sieve_size_encode := $(call int_encode,$(sieve_size))
 rawbits := $(call int_halve,$(sieve_size_encode))
 
@@ -14,20 +14,15 @@ factor := $(three)
 bit_is_true = $(filter x,$(word $(call int_decode,$(call int_inc,$(call int_halve,$1))),$(rawbits)))
 
 find_factor =	$(if $(call bit_is_true,$(num)),\
-					$(info num1 $(call int_decode,$(num)))\
 					$(eval factor := $(num)),\
 					$(eval num := $(call inc_2,$(num)))\
 					$(call find_factor)\
 				)
 
 clear_bits =	$(if $(call int_gt,$(num),$(sieve_size_encode)),,\
-					$(info num2 $(call int_decode,$(num)))\
 					$(eval half := $(call int_halve,$(num)))\
-					$(info num3 $(call int_decode,$(num)))\
 					$(eval rawbits := $(wordlist 1,$(call int_decode,$(half)),$(rawbits)) f $(wordlist $(call int_decode,$(call int_plus,$(half),$(two))),$(call int_decode,$(rawbits)),$(rawbits)))\
-					$(info num4 $(call int_decode,$(num)))\
 					$(eval num := $(call int_plus,$(num),$(call int_multiply,$(factor),$(two))))\
-					$(info num5 $(call int_decode,$(num)))\
 					$(call clear_bits)\
 			  	)
 
@@ -41,9 +36,7 @@ run_sieve = $(if $(call int_eq,$(sub),),,\
 				$(call find_factor)\
 				$(eval num := $(call int_multiply,$(factor),$(three)))\
 				$(call clear_bits)\
-				$(info clear bits done)\
 				$(eval factor := $(call inc_2,$(factor)))\
-				$(info !!!!!!!!!!)\
 				$(call run_sieve)\
 			)
 
