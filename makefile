@@ -84,6 +84,6 @@ all:;
 			$(call count_primes)\
 			$(if $(filter true,$(print_results)),\
 				$(call run_print_results)\
-				$(results)\n,)\
-			Passes: $(iterations_decoded), Time: $(final_time), Limit: $(sieve_size), Count: $(call int_decode,$(total_primes))
+				$(results),)
+	@echo	Passes: $(iterations_decoded), Time: $(final_time), Limit: $(sieve_size), Count: $(call int_decode,$(total_primes))
 	@echo	jastein693\;$(iterations_decoded)\;$(final_time)\;1\;algorithm=base,faithful=no
