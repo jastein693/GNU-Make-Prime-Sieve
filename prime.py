@@ -138,6 +138,6 @@ class prime_sieve(object):
     
 # tD = timeit.default_timer() - tStart                    # After the "at least 10 seconds", get the actual elapsed
 
-sieve = prime_sieve(9000)                         #  Calc the primes up to a million
+sieve = prime_sieve(0)                         #  Calc the primes up to a million
 sieve.runSieve() 
-sieve.printResults(True, 1, 1)                   # Display outcome
+sieve.printResults(False, 1, 1)                   # Display outcome

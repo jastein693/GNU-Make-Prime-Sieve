@@ -1,13 +1,24 @@
+GMSL_NO_WARNINGS := true
 include gmsl/gmsl
 
 two := x x
 three := x x x
 
-sieve_size := 1000
-sieve_size_encode := $(call int_encode,$(sieve_size))
-rawbits := $(call int_halve,$(sieve_size_encode))
+ifndef sieve_size
+	sieve_size := 1000
+endif
 
-factor := $(three)
+ifndef time_to_run
+	time_to_run := 5
+endif
+
+set_up = 	$(or \
+				$(eval factor := $(three)),\
+				$(eval sieve_size_encode := $(call int_encode,$1)),\
+				$(eval rawbits := $(call int_halve,$(sieve_size_encode))),\
+				$(eval odd_number := x),\
+				$(eval sub := $(sieve_size_encode)),\
+		  	)
 
 bit_is_true = $(filter x,$(word $(call int_decode,$(call int_inc,$(call int_halve,$1))),$(rawbits)))
 
@@ -24,9 +35,6 @@ clear_bits =	$(if $(call int_gt,$(num),$(sieve_size_encode)),,\
 					$(call clear_bits)\
 			  	)
 
-odd_number := x
-sub := $(sieve_size_encode)
-
 run_sieve = $(if $(call int_eq,$(sub),),,\
 				$(eval sub := $(call int_subtract,$(sub),$(odd_number)))\
 				$(eval odd_number += $(two))\
@@ -40,7 +48,7 @@ run_sieve = $(if $(call int_eq,$(sub),),,\
 
 print_num := $(three)
 results := 2
-print_results = $(foreach a,$(rawbits),\
+run_print_results = $(foreach a,$(rawbits),\
 					$(or \
 						$(and \
 							$(if $(call bit_is_true,$(print_num)),\
@@ -51,7 +59,6 @@ print_results = $(foreach a,$(rawbits),\
 					)\
 				)
 
-total_primes :=
 count_primes =  $(and \
 					$(foreach a,$(rawbits),\
 						$(if $(filter x,$(a)),\
@@ -60,5 +67,19 @@ count_primes =  $(and \
 					),\
 				)
 
-all: ; @echo $(run_sieve) $(count_primes) total $(call int_decode,$(total_primes))
-# all: ; @echo $(run_sieve) $(count_primes) total $(call int_decode,$(total_primes)) $(print_results) $(results)
+run_sieve_loop =	$(if $(filter 1,$(shell echo $$(( $$(date +%s) - $(start_time) > $(time_to_run) )))),,\
+						$(call set_up,$(sieve_size))\
+						$(call run_sieve)\
+						$(eval iterations := $(call int_inc,$(iterations)))\
+						$(call run_sieve_loop)\
+					)
+				 
+all:; @echo -e $(eval start_time := $(shell echo $$(date +%s)))\
+			   $(call set_up,$(sieve_size))\
+			   $(call run_sieve_loop)\
+			   $(eval final_time := $(shell echo $$(( $$(date +%s) - $(start_time)))))\
+			   $(if $(filter true,$(print_results)),\
+			   		$(call run_print_results)\
+					$(results)\n,)\
+			   total $(call count_primes) $(call int_decode,$(total_primes))\n\
+			   jastein693\;$(call int_decode,$(iterations))\;$(final_time)\;1\;
