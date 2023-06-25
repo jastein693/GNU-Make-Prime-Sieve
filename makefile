@@ -25,7 +25,9 @@ bit_is_true = $(filter x,$(word $(call int_decode,$(call int_inc,$(call int_halv
 find_factor =	$(if $(call bit_is_true,$(num)),\
 					$(eval factor := $(num)),\
 					$(eval num += $(two))\
-					$(call find_factor)\
+					$(if $(call int_gt,$(num),$(sieve_size_encode)),,\
+						$(call find_factor)\
+					)\
 				)
 
 clear_bits =	$(if $(call int_gt,$(num),$(sieve_size_encode)),,\
@@ -74,12 +76,14 @@ run_sieve_loop =	$(if $(filter 1,$(shell echo $$(( $$(date +%s) - $(start_time) 
 						$(call run_sieve_loop)\
 					)
 				 
-all:; @echo -e $(eval start_time := $(shell echo $$(date +%s)))\
-			   $(call set_up,$(sieve_size))\
-			   $(call run_sieve_loop)\
-			   $(eval final_time := $(shell echo $$(( $$(date +%s) - $(start_time)))))\
-			   $(if $(filter true,$(print_results)),\
-			   		$(call run_print_results)\
-					$(results)\n,)\
-			   total $(call count_primes) $(call int_decode,$(total_primes))\n\
-			   jastein693\;$(call int_decode,$(iterations))\;$(final_time)\;1\;
+all:;
+	@echo   $(eval start_time := $(shell echo $$(date +%s)))\
+			$(call run_sieve_loop)\
+			$(eval final_time := $(shell echo $$(( $$(date +%s) - $(start_time)))))\
+			$(eval iterations_decoded := $(call int_decode,$(iterations)))\
+			$(call count_primes)\
+			$(if $(filter true,$(print_results)),\
+				$(call run_print_results)\
+				$(results)\n,)\
+			Passes: $(iterations_decoded), Time: $(final_time), Limit: $(sieve_size), Count: $(call int_decode,$(total_primes))
+	@echo	jastein693\;$(iterations_decoded)\;$(final_time)\;1\;algorithm=base,faithful=no
